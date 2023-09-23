@@ -5,6 +5,7 @@ import { EntityRepository } from '@mikro-orm/mysql';
 
 import { User } from '../user/user.entity';
 import { Article } from './article.entity';
+import { Tag } from '../tag/tag.entity';
 import { IArticleRO, IArticlesRO, ICommentsRO } from './article.interface';
 import { Comment } from './comment.entity';
 import { CreateArticleDto, CreateCommentDto } from './dto';
@@ -19,6 +20,8 @@ export class ArticleService {
     private readonly commentRepository: EntityRepository<Comment>,
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
+    @InjectRepository(Tag)  // Inject the Tag repository
+    private readonly tagRepository: EntityRepository<Tag>,
   ) {}
 
   async findAll(userId: number, query: Record<string, string>): Promise<IArticlesRO> {
@@ -154,11 +157,30 @@ export class ArticleService {
       { populate: ['followers', 'favorites', 'articles'] },
     );
     const article = new Article(user!, dto.title, dto.description, dto.body);
-    article.tagList.push(...dto.tagList);
+    const tags = await this.manageTags(dto.tagList);
+    article.tagList.push(...tags);
     user?.articles.add(article);
     await this.em.flush();
 
     return { article: article.toJSON(user!) };
+  }
+
+  private async manageTags(tagList: string): Promise<string[]> {
+    const tags = tagList.split(',').map(tag => tag.trim());
+
+    const existingTags = await this.tagRepository.find({ tag: { $in: tags } });
+    const existingTagNames = existingTags.map(t => t.tag);
+
+    const newTags = tags.filter(tag => !existingTagNames.includes(tag));
+
+    const newTagEntities = newTags.map(tagName => this.tagRepository.create({ tag: tagName }));
+
+    //await this.tagRepository.persistAndFlush(newTagEntities);
+    // Persist using EntityManager
+    for (const newTagEntity of newTagEntities) {
+      this.em.persist(newTagEntity);
+    }
+    return tags;
   }
 
   async update(userId: number, slug: string, articleData: any): Promise<IArticleRO> {
