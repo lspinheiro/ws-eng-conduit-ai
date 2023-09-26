@@ -12,6 +12,19 @@ export class ProfileService {
     return this.userRepository.findAll();
   }
 
+  async findAllProfiles(): Promise<IProfileRO[]> {
+    const users = await this.userRepository.findAll();
+
+    if (!users.length) {
+      throw new HttpException('No profiles available.', HttpStatus.NOT_FOUND);
+    }
+
+    return users.map((user) => {
+      const { id, password, ...rest } = user; // Destructure out the fields we don't want
+      return { profile: rest };
+    });
+  }
+
   async findOne(options?: FilterQuery<User>): Promise<IProfileRO> {
     const user = (await this.userRepository.findOne(options ?? {})) as any;
 

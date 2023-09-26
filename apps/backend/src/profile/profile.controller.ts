@@ -10,6 +10,11 @@ import { ProfileService } from './profile.service';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
+  @Get()
+  async findAll(): Promise<IProfileRO[]> {
+    return this.profileService.findAllProfiles();
+  }
+
   @Get(':username')
   async getProfile(@User('id') userId: number, @Param('username') username: string): Promise<IProfileRO> {
     return this.profileService.findProfile(userId, username);

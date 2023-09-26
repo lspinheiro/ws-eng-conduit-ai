@@ -1,0 +1,35 @@
+<!-- libs/roster/feature-roster/src/lib/roster.component.html -->
+
+<!-- Header -->
+<h1>Conduit Roster</h1>
+
+<!-- Table -->
+<table class="table">
+  <!-- Table Header -->
+  <thead>
+    <tr>
+      <th>User Name & Profile Link</th>
+      <th>Total Number of Articles Authored</th>
+      <th>Total Number of Likes Received</th>
+      <th>Date of First Article</th>
+    </tr>
+  </thead>
+  <!-- Table Body -->
+  <tbody>
+    <tr *ngFor="let user of rosterData">
+      <td>
+        <!-- <a [routerLink]="['/profile', user.username]">{{ user.username }}</a> -->
+        {{ user.username }}
+      </td>
+      <td>
+        {{ user.totalArticles || 0 }}
+      </td>
+      <td>
+        {{ user.totalLikes || 0 }}
+      </td>
+      <td>
+        {{ user.dateOfFirstArticle || 'N/A' }}
+      </td>
+      </tr>
+  </tbody>
+</table>
